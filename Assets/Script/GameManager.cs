@@ -5,48 +5,56 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public GameObject ball; // Đối tượng bóng
-    public Transform ballSpawnPoint; // Vị trí xuất hiện lại của bóng
+    public static GameManager Instance;
     public Text scoreText; // Text hiển thị điểm số
-    public Text notificationText; // Text thông báo ghi điểm
+    public Text notificationText; // Text thông báo ghi điểm hoặc thua
+    public GameObject ball; // Đối tượng bóng
+    public Transform ballSpawnPoint; // Vị trí spawn lại bóng
     public float notificationDuration = 2f; // Thời gian hiển thị thông báo
 
-    private int score = 0; // Điểm số
-    private Rigidbody ballRigidbody;
+    private int score = 0;
 
-    void Start()
+    void Awake()
     {
-        ballRigidbody = ball.GetComponent<Rigidbody>();
-        UpdateScoreText();
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+
+        UpdateScoreUI();
         notificationText.gameObject.SetActive(false);
     }
 
     public void AddScore(int points)
     {
         score += points;
-        UpdateScoreText();
-        StartCoroutine(ShowNotification($"Ghi điểm! +{points}"));
+        UpdateScoreUI();
+        ShowNotification($"Ghi điểm! +{points}");
+    }
+
+    public void ShowNotification(string message)
+    {
+        notificationText.text = message;
+        notificationText.gameObject.SetActive(true);
+        Invoke(nameof(HideNotification), notificationDuration);
+    }
+
+    void UpdateScoreUI()
+    {
+        scoreText.text = $"Score: {score}";
+    }
+
+    void HideNotification()
+    {
+        notificationText.gameObject.SetActive(false);
     }
 
     public void ResetBall()
     {
-        ballRigidbody.velocity = Vector3.zero;
-        ballRigidbody.angularVelocity = Vector3.zero;
-        ballRigidbody.isKinematic = true;
         ball.transform.position = ballSpawnPoint.position;
-        ballRigidbody.isKinematic = false;
-    }
-
-    void UpdateScoreText()
-    {
-        scoreText.text = $"Điểm: {score}";
-    }
-
-    IEnumerator ShowNotification(string message)
-    {
-        notificationText.text = message;
-        notificationText.gameObject.SetActive(true);
-        yield return new WaitForSeconds(notificationDuration);
-        notificationText.gameObject.SetActive(false);
+        Rigidbody rb = ball.GetComponent<Rigidbody>();
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.isKinematic = false;
     }
 }
