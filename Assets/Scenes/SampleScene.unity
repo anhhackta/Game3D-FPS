@@ -627,6 +627,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!115 &342450906
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: NavMeshSurface
+  m_Namespace: Unity.AI.Navigation
+  m_AssemblyName: Unity.AI.Navigation
 --- !u!1 &348427203
 GameObject:
   m_ObjectHideFlags: 0
@@ -1933,7 +1948,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1766218799}
   m_CullTransparentMesh: 1
---- !u!1 &1907310824
+--- !u!1 &1997565129
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1941,8 +1956,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1907310826}
-  - component: {fileID: 1907310825}
+  - component: {fileID: 1997565131}
+  - component: {fileID: 1997565130}
   m_Layer: 0
   m_Name: NavMesh Surface
   m_TagString: Untagged
@@ -1950,16 +1965,16 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1907310825
+--- !u!114 &1997565130
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1907310824}
+  m_GameObject: {fileID: 1997565129}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Script: {fileID: 342450906}
   m_Name: 
   m_EditorClassIdentifier: 
   m_AgentTypeID: 0
@@ -1979,18 +1994,18 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.016666668
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 95b5598a600f3da43b217423e2029a67, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 52b935ad58f32cd4baf1df80506faac3, type: 2}
   m_BuildHeightMesh: 0
---- !u!4 &1907310826
+--- !u!4 &1997565131
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1907310824}
+  m_GameObject: {fileID: 1997565129}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.059863314, y: 1.7636058, z: 1.7628837}
+  m_LocalPosition: {x: 3.2410743, y: 1.9020516, z: -1.7070385}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2216,4 +2231,4 @@ SceneRoots:
   - {fileID: 524012497}
   - {fileID: 727177100}
   - {fileID: 442610485}
-  - {fileID: 1907310826}
+  - {fileID: 1997565131}
