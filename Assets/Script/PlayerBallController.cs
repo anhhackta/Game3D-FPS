@@ -2,50 +2,50 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
 public class PlayerBallController : MonoBehaviour
 {
     public Transform ballHoldPosition; // Vị trí trên tay nhân vật để cầm bóng
     public GameObject ball; // Đối tượng bóng
-    public GameObject arrow; // Mũi tên ở điểm cuối quỹ đạo
     public float minThrowForce = 5f; // Lực ném tối thiểu
     public float maxThrowForce = 20f; // Lực ném tối đa
     public float upwardForce = 5f; // Lực hướng lên để tạo quỹ đạo parabol
-    public float chargeTime = 2f; // Thời gian để thanh lực đạt max hoặc min
+    public float chargeTime = 2f; // Thời gian để đạt lực tối đa
     public float pickupRadius = 2f; // Bán kính để nhặt bóng
     public Animator animator; // Animator của nhân vật
     public Slider powerSlider; // Thanh lực UI
     public LineRenderer trajectoryLine; // LineRenderer cho quỹ đạo dự đoán
+    public GameObject arrowPrefab; // Prefab mũi tên ở điểm cuối quỹ đạo
     public int trajectoryPoints = 30; // Số điểm trên đường quỹ đạo
     public float trajectoryTimeStep = 0.1f; // Khoảng thời gian giữa các điểm
-    public GameManager gameManager; // Tham chiếu đến GameManager
+    public float powerCycleTime = 4f; // Thời gian để thanh lực dao động (tăng-giảm)
 
     private bool isHoldingBall = false; // Trạng thái cầm bóng
     private bool isChargingThrow = false; // Trạng thái đang canh lực ném
     private float chargeStartTime; // Thời gian bắt đầu giữ chuột trái
     private Rigidbody ballRigidbody;
     private Vector3 throwDirection;
-    private float chargeCycleTime; // Thời gian chu kỳ của thanh lực
+    private GameObject arrowInstance; // Mũi tên tại điểm cuối quỹ đạo
 
     void Start()
     {
         ballRigidbody = ball.GetComponent<Rigidbody>();
-        ballRigidbody.isKinematic = true;
-        ball.transform.position = ballHoldPosition.position;
-        ball.transform.SetParent(ballHoldPosition);
+        ballRigidbody.isKinematic = true; // Bóng không chịu vật lý khi đang cầm
+        ball.transform.position = ballHoldPosition.position; // Đặt bóng ở vị trí tay
+        ball.transform.SetParent(ballHoldPosition); // Gắn bóng vào tay nhân vật
         isHoldingBall = true;
-        //animator.SetBool("IsHolding", true);
 
         // Thiết lập LineRenderer
         trajectoryLine.positionCount = trajectoryPoints;
         trajectoryLine.enabled = false;
-        SetupDashedLine();
+        SetupLineRenderer();
 
-        // Ẩn thanh lực và mũi tên ban đầu
+        // Tạo mũi tên
+        arrowInstance = Instantiate(arrowPrefab);
+        arrowInstance.SetActive(false);
+
+        // Ẩn thanh lực ban đầu
         if (powerSlider != null)
             powerSlider.gameObject.SetActive(false);
-        if (arrow != null)
-            arrow.SetActive(false);
     }
 
     void Update()
@@ -53,7 +53,7 @@ public class PlayerBallController : MonoBehaviour
         // Kiểm tra khoảng cách đến bóng
         float distanceToBall = Vector3.Distance(transform.position, ball.transform.position);
 
-        // Nhấn giữ chuột phải để cầm bóng (chỉ khi ở gần và không cầm)
+        // Nhấn giữ chuột phải để nhặt/giữ bóng
         if (Input.GetMouseButton(1) && !isHoldingBall && distanceToBall <= pickupRadius)
         {
             PickUpBall();
@@ -73,17 +73,26 @@ public class PlayerBallController : MonoBehaviour
             if (powerSlider != null)
                 powerSlider.gameObject.SetActive(true);
             trajectoryLine.enabled = true;
-            if (arrow != null)
-                arrow.SetActive(true);
+            arrowInstance.SetActive(true);
         }
 
         // Cập nhật chỉ báo khi đang canh lực
         if (isChargingThrow)
         {
             float holdTime = Time.time - chargeStartTime;
-            // Tính giá trị lực theo chu kỳ (tăng -> max -> giảm -> min -> lặp lại)
-            chargeCycleTime = (holdTime % (chargeTime * 2)) / chargeTime;
-            float chargeFraction = chargeCycleTime <= 1f ? chargeCycleTime : 2f - chargeCycleTime;
+            float chargeFraction;
+
+            // Thanh lực dao động nếu giữ quá lâu
+            if (holdTime <= chargeTime)
+            {
+                chargeFraction = Mathf.Clamp01(holdTime / chargeTime);
+            }
+            else
+            {
+                // Dao động kiểu sin sau khi đạt tối đa
+                float cycleTime = (holdTime - chargeTime) % powerCycleTime;
+                chargeFraction = Mathf.Sin((cycleTime / powerCycleTime) * 2 * Mathf.PI) * 0.5f + 0.5f;
+            }
 
             // Cập nhật thanh lực UI
             if (powerSlider != null)
@@ -93,37 +102,45 @@ public class PlayerBallController : MonoBehaviour
             UpdateTrajectory(chargeFraction);
         }
 
-        // Thả chuột trái để ném bóng
+        // Thả chuột trái để ném bóng hoặc hủy nếu thả chuột phải
         if (Input.GetMouseButtonUp(0) && isChargingThrow)
         {
-            ThrowBall();
-            isChargingThrow = false;
-            //animator.SetBool("IsCharging", false);
-            //animator.SetTrigger("Throw");
-            if (powerSlider != null)
-                powerSlider.gameObject.SetActive(false);
-            trajectoryLine.enabled = false;
-            if (arrow != null)
-                arrow.SetActive(false);
+            if (isHoldingBall) // Chỉ ném nếu vẫn cầm bóng
+            {
+                ThrowBall();
+            }
+            CancelThrow();
         }
     }
 
     void PickUpBall()
     {
+        if (animator == null)
+        {
+            Debug.LogError("Animator is not assigned!");
+            return;
+        }
         isHoldingBall = true;
-        ballRigidbody.isKinematic = true;
+        ballRigidbody.isKinematic = true; // Tắt vật lý
         ball.transform.position = ballHoldPosition.position;
-        ball.transform.SetParent(ballHoldPosition);
-        //animator.SetBool("IsHolding", true);
+        ball.transform.SetParent(ballHoldPosition); // Gắn bóng vào tay
+        //animator.SetBool("IsHolding", true); // Kích hoạt animation cầm bóng
+        //SoundManager.Instance.PlaySFX(SoundManager.Instance.pickupBallClip);
     }
 
     void DropBall()
     {
+        if (animator == null)
+        {
+            Debug.LogError("Animator is not assigned!");
+            return;
+        }
         isHoldingBall = false;
-        ball.transform.SetParent(null);
-        ballRigidbody.isKinematic = false;
-        //animator.SetBool("IsHolding", false);
-        //animator.SetTrigger("Drop");
+        ball.transform.SetParent(null); // Tách bóng khỏi tay
+        ballRigidbody.isKinematic = false; // Bật vật lý
+        //animator.SetBool("IsHolding", false); // Tắt animation cầm bóng
+        if (isChargingThrow)
+            CancelThrow(); // Hủy ném nếu đang canh lực
     }
 
     void ThrowBall()
@@ -131,20 +148,53 @@ public class PlayerBallController : MonoBehaviour
         if (!isHoldingBall) return;
 
         isHoldingBall = false;
-        ball.transform.SetParent(null);
-        ballRigidbody.isKinematic = false;
+        ball.transform.SetParent(null); // Tách bóng khỏi tay
+        ballRigidbody.isKinematic = false; // Bật vật lý
 
-        // Tính lực ném dựa trên thanh lực
-        float chargeFraction = powerSlider != null ? powerSlider.value : 1f;
+        // Tính lực ném dựa trên thời gian giữ chuột
+        float holdTime = Time.time - chargeStartTime;
+        float chargeFraction = holdTime <= chargeTime ? Mathf.Clamp01(holdTime / chargeTime) :
+            Mathf.Sin(((holdTime - chargeTime) % powerCycleTime / powerCycleTime) * 2 * Mathf.PI) * 0.5f + 0.5f;
         float throwForce = Mathf.Lerp(minThrowForce, maxThrowForce, chargeFraction);
 
-        // Tính hướng ném
+        // Tính hướng ném (phía trước nhân vật + lực hướng lên)
         throwDirection = (transform.forward + Vector3.up * upwardForce).normalized;
 
         // Áp dụng lực ném
         ballRigidbody.AddForce(throwDirection * throwForce, ForceMode.Impulse);
 
-        //animator.SetBool("IsHolding", false);
+        //animator.SetBool("IsHolding", false); // Tắt animation cầm bóng
+        //animator.SetTrigger("Throw"); // Kích hoạt animation ném
+        //SoundManager.Instance.PlaySFX(SoundManager.Instance.throwBallClip);
+    }
+
+    void CancelThrow()
+    {
+        isChargingThrow = false;
+        //animator.SetBool("IsCharging", false);
+        if (powerSlider != null)
+            powerSlider.gameObject.SetActive(false);
+        trajectoryLine.enabled = false;
+        arrowInstance.SetActive(false);
+    }
+
+    void SetupLineRenderer()
+    {
+        trajectoryLine.startWidth = 0.1f;
+        trajectoryLine.endWidth = 0.1f;
+        trajectoryLine.material = new Material(Shader.Find("Sprites/Default"));
+        trajectoryLine.startColor = Color.yellow;
+        trajectoryLine.endColor = Color.yellow;
+
+        // Tạo texture sọc đứt đoạn
+        Texture2D dashedTexture = new Texture2D(256, 1);
+        for (int i = 0; i < 256; i++)
+        {
+            dashedTexture.SetPixel(i, 0, i % 20 < 10 ? Color.white : Color.clear);
+        }
+        dashedTexture.Apply();
+        trajectoryLine.material.mainTexture = dashedTexture;
+        trajectoryLine.material.mainTextureScale = new Vector2(10f, 1f);
     }
 
     void UpdateTrajectory(float chargeFraction)
@@ -160,42 +210,21 @@ public class PlayerBallController : MonoBehaviour
             Vector3 point = startPos + velocity * time + 0.5f * Physics.gravity * time * time;
             trajectoryLine.SetPosition(i, point);
 
-            // Đặt vị trí và hướng mũi tên ở điểm cuối
-            if (i == trajectoryPoints - 1 && arrow != null)
+            // Cập nhật vị trí và hướng của mũi tên ở điểm cuối
+            if (i == trajectoryPoints - 1)
             {
-                arrow.transform.position = point;
-                Vector3 nextPoint = startPos + velocity * (time + trajectoryTimeStep) + 0.5f * Physics.gravity * (time + trajectoryTimeStep) * (time + trajectoryTimeStep);
-                arrow.transform.rotation = Quaternion.LookRotation(nextPoint - point);
+                arrowInstance.transform.position = point;
+                if (i > 0)
+                {
+                    Vector3 prevPoint = trajectoryLine.GetPosition(i - 1);
+                    arrowInstance.transform.rotation = Quaternion.LookRotation(point - prevPoint);
+                }
             }
         }
     }
 
-    void SetupDashedLine()
-    {
-        // Thiết lập LineRenderer thành nét đứt
-        trajectoryLine.material = new Material(Shader.Find("Sprites/Default"));
-        trajectoryLine.startColor = Color.yellow;
-        trajectoryLine.endColor = Color.yellow;
-        trajectoryLine.startWidth = 0.1f;
-        trajectoryLine.endWidth = 0.1f;
-        trajectoryLine.material.mainTextureScale = new Vector2(10f, 1f); // Tạo hiệu ứng nét đứt
-        trajectoryLine.material.mainTexture = CreateDashTexture();
-    }
-
-    Texture2D CreateDashTexture()
-    {
-        Texture2D texture = new Texture2D(16, 1);
-        for (int i = 0; i < 16; i++)
-        {
-            texture.SetPixel(i, 0, i < 8 ? Color.white : Color.clear);
-        }
-        texture.Apply();
-        return texture;
-    }
-
     void OnDrawGizmos()
     {
-        // Vẽ bán kính nhặt bóng trong Editor
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, pickupRadius);
     }
