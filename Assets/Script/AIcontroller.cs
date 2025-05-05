@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class AIcontroller : MonoBehaviour
+public class AIController : MonoBehaviour
 {
     public Transform player; // Nhân vật người chơi
     public GameObject ball; // Quả bóng
@@ -14,21 +14,28 @@ public class AIcontroller : MonoBehaviour
     public Animator animator; // Animator của AI
     public float crouchDistance = 4f; // Khoảng cách để chuyển sang Crouched Walking
 
-    private UnityEngine.AI.NavMeshAgent agent;
+    private NavMeshAgent agent;
     private Rigidbody ballRigidbody;
     private bool isBallInAir = false;
     private bool isGameOver = false;
 
     void Start()
     {
-        agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-        ballRigidbody = ball.GetComponent<Rigidbody>();
+        agent = GetComponent<NavMeshAgent>();
+        if (ball != null)
+            ballRigidbody = ball.GetComponent<Rigidbody>();
+        else
+            Debug.LogError("Ball is not assigned in AIController!");
         animator = GetComponent<Animator>();
+        if (animator == null)
+            Debug.LogError("Animator is not assigned in AIController!");
     }
 
     void Update()
     {
-        if (isGameOver) return;
+        // Dừng logic nếu game bị pause hoặc game over
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused || isGameOver)
+            return;
 
         // Tính khoảng cách đến người chơi
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
@@ -42,7 +49,7 @@ public class AIcontroller : MonoBehaviour
             // Nhảy cản bóng
             animator.SetBool("IsWaving", true);
             agent.isStopped = true; // Dừng di chuyển khi nhảy
-            //SoundManager.Instance.PlaySFX(SoundManager.Instance.scoreClip); // Âm thanh cản bóng
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.scoreClip); // Âm thanh cản bóng
         }
         else if (IsBallOnGround() && Vector3.Distance(transform.position, ball.transform.position) <= pickupRadius)
         {
@@ -115,13 +122,25 @@ public class AIcontroller : MonoBehaviour
 
     void PickUpBall()
     {
+        if (ball == null || ballRigidbody == null || animator == null)
+        {
+            Debug.LogError("Ball, BallRigidbody, or Animator is not assigned in AIController!");
+            return;
+        }
+
         isGameOver = true;
         ballRigidbody.isKinematic = true;
         ball.transform.position = transform.position + Vector3.up * 1f; // Nâng bóng lên tay AI
         ball.transform.SetParent(transform); // Gắn bóng vào AI
         animator.SetBool("IsHolding", true); // Animation cầm bóng
-        GameManager.Instance.ShowNotification("Game Over! AI nhặt bóng!");
-        SoundManager.Instance.PlaySFX(SoundManager.Instance.scoreClip); // Âm thanh thua
+        if (GameManager.Instance != null)
+            GameManager.Instance.ShowNotification("Game Over! AI nhặt bóng!");
+        else
+            Debug.LogError("GameManager.Instance is null!");
+        if (SoundManager.Instance != null && SoundManager.Instance.scoreClip != null)
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.scoreClip);
+        else
+            Debug.LogWarning("SoundManager or scoreClip is not assigned!");
     }
 
     void OnDrawGizmos()

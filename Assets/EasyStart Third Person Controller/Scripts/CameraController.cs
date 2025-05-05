@@ -50,6 +50,11 @@ public class CameraController : MonoBehaviour
     void Update()
     {
 
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused)
+        {
+            Debug.Log("Game is paused, skipping camera input");
+            return;
+        }
         // Follow player - camera offset
         transform.position = player.position + new Vector3(0, offsetDistanceY, 0);
 

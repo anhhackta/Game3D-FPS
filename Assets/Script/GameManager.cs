@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     public Transform ballSpawnPoint; // Vị trí spawn lại bóng
     public float notificationDuration = 2f; // Thời gian hiển thị thông báo
 
-    private int score = 0;
+    public int score = 0;
 
     void Awake()
     {
@@ -22,11 +22,18 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
 
         UpdateScoreUI();
-        notificationText.gameObject.SetActive(false);
+        if (notificationText != null)
+            notificationText.gameObject.SetActive(false);
+        else
+            Debug.LogError("NotificationText is not assigned in GameManager!");
     }
 
     public void AddScore(int points)
     {
+        // Không thêm điểm nếu game bị pause
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused)
+            return;
+
         score += points;
         UpdateScoreUI();
         ShowNotification($"Ghi điểm! +{points}");
@@ -34,27 +41,51 @@ public class GameManager : MonoBehaviour
 
     public void ShowNotification(string message)
     {
-        notificationText.text = message;
-        notificationText.gameObject.SetActive(true);
-        Invoke(nameof(HideNotification), notificationDuration);
+        // Cho phép thông báo "Game Over" ngay cả khi pause
+        if (notificationText != null)
+        {
+            notificationText.text = message;
+            notificationText.gameObject.SetActive(true);
+            Invoke(nameof(HideNotification), notificationDuration);
+        }
+        else
+            Debug.LogError("Cannot show notification because NotificationText is not assigned!");
     }
 
     void UpdateScoreUI()
     {
-        scoreText.text = $"Score: {score}";
+        if (scoreText != null)
+            scoreText.text = $"Score: {score}";
+        else
+            Debug.LogError("ScoreText is not assigned in GameManager!");
     }
 
     void HideNotification()
     {
-        notificationText.gameObject.SetActive(false);
+        if (notificationText != null)
+            notificationText.gameObject.SetActive(false);
     }
 
     public void ResetBall()
     {
-        ball.transform.position = ballSpawnPoint.position;
-        Rigidbody rb = ball.GetComponent<Rigidbody>();
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-        rb.isKinematic = false;
+        // Không reset bóng nếu game bị pause
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused)
+            return;
+
+        if (ball != null && ballSpawnPoint != null)
+        {
+            ball.transform.position = ballSpawnPoint.position;
+            Rigidbody rb = ball.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.isKinematic = false;
+            }
+            else
+                Debug.LogError("Ball Rigidbody is not assigned in GameManager!");
+        }
+        else
+            Debug.LogError("Ball or BallSpawnPoint is not assigned in GameManager!");
     }
 }
