@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+
 public class PlayerBallController : MonoBehaviour
 {
     public Transform ballHoldPosition; // Vị trí trên tay nhân vật để cầm bóng
@@ -50,6 +51,13 @@ public class PlayerBallController : MonoBehaviour
 
     void Update()
     {
+        // Dừng input nếu game bị pause
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused)
+        {
+            Debug.Log("Game is paused, skipping input in PlayerBallController");
+            return;
+        }
+
         // Kiểm tra khoảng cách đến bóng
         float distanceToBall = Vector3.Distance(transform.position, ball.transform.position);
 
@@ -117,7 +125,7 @@ public class PlayerBallController : MonoBehaviour
     {
         if (animator == null)
         {
-            Debug.LogError("Animator is not assigned!");
+            Debug.LogError("Animator is not assigned in PlayerBallController!");
             return;
         }
         isHoldingBall = true;
@@ -125,14 +133,14 @@ public class PlayerBallController : MonoBehaviour
         ball.transform.position = ballHoldPosition.position;
         ball.transform.SetParent(ballHoldPosition); // Gắn bóng vào tay
         //animator.SetBool("IsHolding", true); // Kích hoạt animation cầm bóng
-        //SoundManager.Instance.PlaySFX(SoundManager.Instance.pickupBallClip);
+        SoundManager.Instance.PlaySFX(SoundManager.Instance.pickupBallClip);
     }
 
     void DropBall()
     {
         if (animator == null)
         {
-            Debug.LogError("Animator is not assigned!");
+            Debug.LogError("Animator is not assigned in PlayerBallController!");
             return;
         }
         isHoldingBall = false;
@@ -145,6 +153,11 @@ public class PlayerBallController : MonoBehaviour
 
     void ThrowBall()
     {
+        if (animator == null)
+        {
+            Debug.LogError("Animator is not assigned in PlayerBallController!");
+            return;
+        }
         if (!isHoldingBall) return;
 
         isHoldingBall = false;
