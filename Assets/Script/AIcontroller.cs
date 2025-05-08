@@ -18,6 +18,9 @@ public class AIController : MonoBehaviour
     private Rigidbody ballRigidbody;
     private bool isBallInAir = false;
     private bool isGameOver = false;
+    private float idleLookAroundTimer = 0f; // Bộ đếm thời gian cho hành vi nhìn xung quanh
+    private float idleLookAroundInterval = 3f; // Khoảng thời gian giữa các lần nhìn xung quanh
+    private Vector3 lookAroundTarget; // Điểm mục tiêu để nhìn xung quanh
 
     void Start()
     {
@@ -60,6 +63,12 @@ public class AIController : MonoBehaviour
         {
             animator.SetBool("IsWaving", false);
             MoveToPlayer(distanceToPlayer);
+        }
+
+        // Thêm hành vi nhìn xung quanh khi bot không di chuyển
+        if (agent.isStopped && !animator.GetBool("IsWalking") && !animator.GetBool("IsCrouchedWalking"))
+        {
+            HandleIdleLookAround();
         }
     }
 
@@ -141,6 +150,26 @@ public class AIController : MonoBehaviour
             SoundManager.Instance.PlaySFX(SoundManager.Instance.scoreClip);
         else
             Debug.LogWarning("SoundManager or scoreClip is not assigned!");
+    }
+
+    void HandleIdleLookAround()
+    {
+        idleLookAroundTimer += Time.deltaTime;
+
+        if (idleLookAroundTimer >= idleLookAroundInterval)
+        {
+            // Tạo một hướng nhìn ngẫu nhiên trong phạm vi 360 độ
+            lookAroundTarget = transform.position + new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)).normalized;
+            idleLookAroundTimer = 0f; // Reset bộ đếm thời gian
+        }
+
+        // Xoay bot về hướng mục tiêu nhìn xung quanh
+        Vector3 direction = (lookAroundTarget - transform.position).normalized;
+        if (direction.magnitude > 0.1f)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 2f); // Làm mượt xoay
+        }
     }
 
     void OnDrawGizmos()

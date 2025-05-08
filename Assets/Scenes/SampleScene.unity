@@ -1010,7 +1010,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 079bfb46c7cf64140a1234cc07b63d7b,
         type: 3}
       propertyPath: m_Name
-      value: Ch11_nonPBR
+      value: Bot
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 079bfb46c7cf64140a1234cc07b63d7b,
         type: 3}
@@ -2392,7 +2392,7 @@ PrefabInstance:
     - target: {fileID: 5741931869513193404, guid: 8a0831b24c302314cbd6f754e3567a2b,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
