@@ -538,11 +538,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 404096691526585061, guid: dd5ac38aa2ff306449ec12c2911b5407,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 407451357409594995, guid: dd5ac38aa2ff306449ec12c2911b5407,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -623,11 +618,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 162.00002
-      objectReference: {fileID: 0}
-    - target: {fileID: 3772910377803097170, guid: dd5ac38aa2ff306449ec12c2911b5407,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3772910377803097170, guid: dd5ac38aa2ff306449ec12c2911b5407,
         type: 3}
@@ -758,11 +748,6 @@ PrefabInstance:
     - target: {fileID: 4497785665113099345, guid: dd5ac38aa2ff306449ec12c2911b5407,
         type: 3}
       propertyPath: m_FontData.m_FontStyle
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4657113050735824694, guid: dd5ac38aa2ff306449ec12c2911b5407,
-        type: 3}
-      propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4846031130259943805, guid: dd5ac38aa2ff306449ec12c2911b5407,
@@ -953,8 +938,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 3707547436956529674, guid: dd5ac38aa2ff306449ec12c2911b5407, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dd5ac38aa2ff306449ec12c2911b5407, type: 3}

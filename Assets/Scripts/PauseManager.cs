@@ -6,12 +6,12 @@ public class PauseManager : MonoBehaviour
 {
     public static PauseManager Instance;
     public GameObject pausePanel;
-    public Button resumeButton;    // Nút chơi tiếp
-    public Button restartButton;   // Nút chơi lại
-    public Button homeButton;      // Nút về Home
-    public Button settingsButton;  // Nút cài đặt
-    public Button exitButton;      // Nút X thoát pause menu
-    public string startSceneName = "StartScene"; // Sửa thành tên scene Main Menu
+    public Button resumeButton;    
+    public Button restartButton;  
+    public Button homeButton;    
+    public Button settingsButton;  
+    public Button exitButton;      
+    public string startSceneName = "StartScene"; 
     public Image spinningImage;
     public float spinSpeed = 30f;
     private bool isPaused = false;
@@ -41,8 +41,6 @@ public class PauseManager : MonoBehaviour
         {
             Debug.LogError("pausePanel is not assigned!");
         }
-
-        // Gán sự kiện cho các nút
         if (resumeButton != null)
         {
             resumeButton.onClick.RemoveAllListeners();
@@ -86,7 +84,7 @@ public class PauseManager : MonoBehaviour
         if (exitButton != null)
         {
             exitButton.onClick.RemoveAllListeners();
-            exitButton.onClick.AddListener(ResumeGame); // Nút X cũng là Resume
+            exitButton.onClick.AddListener(ResumeGame);
         }
         else
         {
@@ -173,6 +171,11 @@ public class PauseManager : MonoBehaviour
     void RestartGame()
     {
         Time.timeScale = 1f;
+        isPaused = false; // Đảm bảo trạng thái pause được reset
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(false);
+        }
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         Debug.Log("Restarting game");
     }
@@ -180,9 +183,14 @@ public class PauseManager : MonoBehaviour
     void BackToMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(startSceneName);
+        isPaused = false; // Đảm bảo trạng thái pause được reset
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(false);
+        }
         AudioManager.Instance?.StopCrowd();
-        Debug.Log("Returning to MainMenu.uri");
+        SceneManager.LoadScene(startSceneName);
+        Debug.Log("Returning to MainMenu");
     }
 
     void OpenSettings()
