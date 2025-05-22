@@ -6,6 +6,10 @@ TagManager:
   tags:
   - Ball
   - Bot
+  - Ground
+  - Defend
+  - Audio
+  - Ring
   layers:
   - Default
   - TransparentFX
