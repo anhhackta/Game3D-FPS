@@ -1,0 +1,32 @@
+# GitHub Pages configuration
+title: Game3D FPS
+description: An immersive 3D first-person shooter game built with Unity
+url: "https://portfolio.bahoang.online"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Exclude from processing
+exclude:
+  - Assets/
+  - ProjectSettings/
+  - Packages/
+  - .vscode/
+  - .vs/
+  - .gitignore
+  - .gitattributes
+  - .vsconfig
+  - Logs/
+  - Temp/
+  - Build/
+  - Builds/
+  - UserSettings/
+  - MemoryCaptures/
+  - Recordings/
+  - README.md
